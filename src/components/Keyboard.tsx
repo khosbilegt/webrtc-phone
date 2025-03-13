@@ -84,10 +84,10 @@ function Keyboard({
         ))}
       </Grid>
       <Flex gap={"sm"} justify={"center"} mt={10}>
-        <Button size={"lg"} radius={"lg"}>
+        <Button size={"lg"} radius={"lg"} color="green">
           <IconPhoneCall />
         </Button>
-        <Button size={"lg"} radius={"lg"}>
+        <Button size={"lg"} radius={"lg"} disabled>
           <IconVideoFilled />
         </Button>
       </Flex>

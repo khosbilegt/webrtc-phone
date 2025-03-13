@@ -1,4 +1,4 @@
-import { Card, Input, Stack } from "@mantine/core";
+import { Card, Flex, Input, Stack, Text } from "@mantine/core";
 import Keyboard from "../components/Keyboard";
 import { useState } from "react";
 
@@ -8,6 +8,9 @@ function CallView() {
   return (
     <Card maw={400}>
       <Stack align="center">
+        <Flex>
+          <Text>Connection Status: NOT_CONNECTED </Text>
+        </Flex>
         <Input
           size="xl"
           placeholder="Enter call destination"

@@ -57,6 +57,7 @@ function MainLayout({ children }: { children: React.ReactNode }) {
                 onClick={() => {
                   navigate(item.href);
                 }}
+                align="center"
               >
                 {item.icon}
                 {item.label}
