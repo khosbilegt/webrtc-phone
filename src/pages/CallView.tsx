@@ -6,11 +6,10 @@ function CallView() {
   const [target, setTarget] = useState("");
 
   return (
-    <Card w={"500px"}>
+    <Card maw={400}>
       <Stack align="center">
         <Input
           size="xl"
-          w={"100%"}
           placeholder="Enter call destination"
           value={target}
           onChange={(e) => {

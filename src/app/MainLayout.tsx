@@ -1,16 +1,15 @@
 import {
   AppShell,
   Burger,
-  Button,
   Flex,
-  Group,
-  Skeleton,
   Stack,
-  Text,
   Title,
+  useMantineTheme,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { IconPhoneCall, IconSettings } from "@tabler/icons-react";
+import { motion } from "motion/react";
+import { useNavigate } from "react-router";
 
 const navbarItems = [
   {
@@ -27,11 +26,12 @@ const navbarItems = [
 
 function MainLayout({ children }: { children: React.ReactNode }) {
   const [opened, { toggle }] = useDisclosure();
+  const theme = useMantineTheme();
+  const navigate = useNavigate();
 
   return (
     <AppShell
       h={"100%"}
-      w={"100vw"}
       header={{ height: 60 }}
       padding={"md"}
       navbar={{ width: 100, breakpoint: "sm", collapsed: { mobile: !opened } }}
@@ -43,14 +43,27 @@ function MainLayout({ children }: { children: React.ReactNode }) {
         </Flex>
       </AppShell.Header>
       <AppShell.Navbar p={"md"}>
-        <Group>
+        <Stack>
           {navbarItems.map((item, index) => (
-            <Stack key={index} align="center">
-              {item.icon}
-              {item.label}
-            </Stack>
+            <motion.div
+              key={index}
+              whileHover={{
+                scale: 1.1,
+                color: theme.colors[theme.primaryColor][6],
+              }}
+              whileTap={{ scale: 0.9 }}
+            >
+              <Stack
+                onClick={() => {
+                  navigate(item.href);
+                }}
+              >
+                {item.icon}
+                {item.label}
+              </Stack>
+            </motion.div>
           ))}
-        </Group>
+        </Stack>
       </AppShell.Navbar>
       <AppShell.Main>{children}</AppShell.Main>
     </AppShell>

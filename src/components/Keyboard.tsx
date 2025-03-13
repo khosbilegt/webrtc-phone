@@ -73,7 +73,7 @@ function Keyboard({
           >
             <Button
               radius={"lg"}
-              size={"xl"}
+              size="lg"
               onClick={() => {
                 buttonClick(button.value);
               }}
@@ -84,10 +84,10 @@ function Keyboard({
         ))}
       </Grid>
       <Flex gap={"sm"} justify={"center"} mt={10}>
-        <Button size={"xl"} radius={"lg"}>
+        <Button size={"lg"} radius={"lg"}>
           <IconPhoneCall />
         </Button>
-        <Button size={"xl"} radius={"lg"}>
+        <Button size={"lg"} radius={"lg"}>
           <IconVideoFilled />
         </Button>
       </Flex>
