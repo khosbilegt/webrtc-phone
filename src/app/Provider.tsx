@@ -1,11 +1,20 @@
 import { MantineProvider } from "@mantine/core";
 import Router from "./Router";
+import { SIPContextProvider } from "./SipContext";
+import { Notifications } from "@mantine/notifications";
 import "@mantine/core/styles.css";
+import "@mantine/notifications/styles.css";
+import ErrorBoundary from "./ErrorBoundary";
 
 function Provider() {
   return (
     <MantineProvider defaultColorScheme="dark">
-      <Router />
+      <Notifications />
+      <SIPContextProvider>
+        <ErrorBoundary>
+          <Router />
+        </ErrorBoundary>
+      </SIPContextProvider>
     </MantineProvider>
   );
 }
