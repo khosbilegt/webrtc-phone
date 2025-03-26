@@ -1,29 +1,37 @@
 import { ActionIcon, Card, Flex, Input, Stack, Text } from "@mantine/core";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { notifications } from "@mantine/notifications";
 import JsSIP from "jssip";
 import SIPContext from "../app/SipContext";
 import Keyboard from "../components/Keyboard";
 import { IconRefresh } from "@tabler/icons-react";
+import { CallStage } from "../types/sip";
+import { PeerConnectionEvent } from "jssip/lib/RTCSession";
 
 function CallView() {
   const [target, setTarget] = useState("");
-  const { sipPhoneRef } = useContext(SIPContext);
+  const [bearerToken, setBearerToken] = useState("");
+  const {
+    sipPhoneRef,
+    sipClientStatus,
+    setSIPClientStatus,
+    sipCallStageRef,
+    sipCallSessionRef,
+  } = useContext(SIPContext);
+  const remoteAudio = useRef<HTMLMediaElement | null>(null);
 
   const attemptConnection = (webrtcConfig: any) => {
-    console.log(webrtcConfig);
     try {
       const webrtcServer = webrtcConfig?.webrtcServer;
       const username = webrtcConfig?.username;
       const password = webrtcConfig?.password;
-      const socket = new JsSIP.WebSocketInterface(webrtcServer, [
-        "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImd0eSI6WyJhdXRob3JpemF0aW9uX2NvZGUiXSwia2lkIjoiTFl1Uk02WlpOMWt1M1F1T29iWi15T242bUZFIn0.eyJhdWQiOlsiM2VkZTYxMWItNTE2NS00OThmLWE1ZGItM2I1ZjdiZWE4NjlhIiwiMGJmYjM3NmEtMDRmZi00MGNhLWE5YTgtNjJhZTNlZGU5NjRiIl0sImV4cCI6MTc0MjUyNzUyNCwiaWF0IjoxNzQyNTIzOTI0LCJpc3MiOiJmdXNpb25hdXRoLnVuaXRlbC5tbjo5MDEwIiwic3ViIjoiNmU4MGQ1NjctMGIzYy0zNGM3LWEzYmEtYzQxYWZiOTFkYjBmIiwianRpIjoiOTRlMGVmMWEtNzQxYi00ZTc2LWFhNDgtMTNjZGQwNGI3ZDViIiwiYXV0aGVudGljYXRpb25UeXBlIjoiUEFTU1dPUkQiLCJzY29wZSI6ImFkZHJlc3MgZW1haWwgb2ZmbGluZV9hY2Nlc3Mgb3BlbmlkIHBob25lIHByb2ZpbGUiLCJzaWQiOiIzYmMzNTIzNC01NGFhLTQ5MmMtYWZjNy02MTE0NDM4YjU2MWUiLCJhdXRoX3RpbWUiOjE3NDI1MjM5MjQsInRpZCI6IjU5NmUyNzAxLWViZTYtNDkwYy05YjMyLTg1OWViODgxYjAwMyIsInByZWZlcnJlZF91c2VybmFtZSI6Imtob3NiaWxlZ3QuYiIsIml2ci5hdXRvX2Fuc3dlciI6InRydWUiLCJpdnIucGFzc3dvcmQiOiJaNnYxNjJENEFHIiwiaXZyLm91dGJvdW5kIjoidHJ1ZSJ9.RweQYgweJPCgu6XuZAhFGUN_uQnBV-jtUuyZxncyEBMbew06w8vR1ZA1h01fzOUJsOlunhkD6Z3zW6aM6kDLeDiW3Fu46wW1PjsEjJ0a7k-le1zdVNAUiUrvmJeqamu_2h0QnRh6Nw-EFAiRknc7YWbQAu9pPGgPAa4-9_8XRti0L0NzkGOMj1O21ohNIAdiFHbCglZ34wjcbuqRq1zttCAFg3dZLBw9E1zUqKDHDBxp7uBenmoV5wGQgMgXiW8eAMYnlIQFZUcokAXG4i7u_-IQc-JTII-zv4I5aBU4_TtLt6vNw5vvebx_PIHEnubEfso0rnMbZgq6NLD-EZEV1w",
-      ]);
+      const socket = new JsSIP.WebSocketInterface(webrtcServer, [bearerToken]);
       const configURI = `sip:${username}`;
       const configuration = {
         sockets: [socket],
         uri: configURI,
         password: password,
+        trace_sip: true,
         connection_recovery_min_interval: 10000,
       };
       const phone = new JsSIP.UA(configuration);
@@ -33,6 +41,92 @@ function CallView() {
           title: "Connection Successful",
           message: "SIP connection successful",
         });
+        setSIPClientStatus({
+          isConnected: true,
+        });
+      });
+
+      phone.on("disconnected", () => {
+        notifications.show({
+          title: "Connection Lost",
+          message: "SIP connection lost",
+          color: "red",
+        });
+        setSIPClientStatus({
+          isConnected: false,
+        });
+      });
+
+      phone.on("newRTCSession", (data: any) => {
+        if (sipCallStageRef.current === CallStage.IN_CALL) {
+          // const { session } = data;
+          // session.terminate();
+        } else {
+          const { session } = data;
+          sipCallSessionRef.current = session;
+          if (session.direction === "incoming") {
+            // setCallStatus((prevStatus) => ({
+            //   ...prevStatus,
+            //   stage: CallStage.INCOMING,
+            //   callerId: session._remote_identity._uri?._user,
+            // }));
+            sipCallStageRef.current = CallStage.INCOMING;
+            try {
+              console.log("Дуудлага ирлээ");
+              // incomingAudio.src = callingAudio;
+              // incomingAudio.loop = true;
+              // incomingAudio.play();
+            } catch (error) {
+              // message.error("Хэрэглэгчийн аудио тоглуулахад алдаа гарлаа");
+              console.error("Incoming audio тоглуулж чадсангүй:");
+            }
+          }
+          session.on("peerconnection", function (data: PeerConnectionEvent) {
+            data.peerconnection.addEventListener(
+              "addstream",
+              function (e: any) {
+                if (remoteAudio.current) {
+                  remoteAudio.current.srcObject = e.stream;
+                  remoteAudio.current.play();
+                  console.log("Audio-г амжилттай холболоо");
+                } else {
+                  notifications.show({
+                    title: "Audio Error",
+                    message: "Failed to connect audio",
+                    color: "red",
+                  });
+                  console.error("Failed to connect audio");
+                }
+              }
+            );
+          });
+          session.on("accepted", () => {
+            console.log("Accepted call");
+            sipCallStageRef.current = CallStage.IN_CALL;
+          });
+
+          session.on("ended", () => {
+            sipCallSessionRef.current = null;
+            sipCallStageRef.current = CallStage.ENDED;
+            // messageApi.warning("Дуудлага тасарлаа");
+          });
+
+          session.on("failed", (data: any) => {
+            const type = data?.cause;
+            const errorMessage = type;
+            console.log("HERE");
+            console.log(data);
+            console.log("Failed to connect call", errorMessage);
+            notifications.show({
+              title: "Call Error",
+              message: `Failed to connect call: ${errorMessage} ${data?.cause}`,
+              color: "red",
+            });
+            sipCallSessionRef.current = null;
+
+            sipCallStageRef.current = CallStage.IDLE;
+          });
+        }
       });
 
       phone.start();
@@ -42,6 +136,29 @@ function CallView() {
       notifications.show({
         title: "Connection Error",
         message: "Error connecting to SIP server",
+        color: "red",
+      });
+    }
+  };
+
+  const makeCall = () => {
+    console.log("Clicked");
+    const number = target;
+    const destination = `sip:${number}@10.10.6.106`;
+    const options = {
+      mediaConstraints: {
+        audio: true,
+        video: false,
+      },
+      // ...(fromNumberId && { fromDisplayName: fromNumberId }),
+    };
+    if (sipPhoneRef.current != null) {
+      const session = sipPhoneRef.current.call(destination, options);
+      sipCallSessionRef.current = session;
+    } else {
+      notifications.show({
+        title: "Connection Error",
+        message: "SIP connection not established",
         color: "red",
       });
     }
@@ -58,11 +175,18 @@ function CallView() {
     <Card maw={400}>
       <Stack align="center">
         <Flex gap={10}>
-          <Text>Connection Status: NOT_CONNECTED </Text>
+          <audio ref={remoteAudio} />
+          <Text>
+            Connection Status:{" "}
+            {sipClientStatus.isConnected ? "CONNECTED" : "DISCONNECTED"}{" "}
+          </Text>
           <ActionIcon
-            onClick={() =>
-              attemptConnection(localStorage.getItem("webrtc_config"))
-            }
+            onClick={() => {
+              const config = localStorage.getItem("webrtc_config");
+              if (config) {
+                attemptConnection(JSON.parse(config));
+              }
+            }}
           >
             <IconRefresh />
           </ActionIcon>
@@ -75,11 +199,22 @@ function CallView() {
             setTarget(e.currentTarget.value);
           }}
         />
+        <Input
+          size="xl"
+          placeholder="Bearer Token"
+          value={bearerToken}
+          onChange={(e) => {
+            setBearerToken(e.currentTarget.value);
+          }}
+        />
         <Keyboard
           buttonClick={(value: string) => {
             setTarget((prevTarget) => {
               return prevTarget + value;
             });
+          }}
+          callClick={() => {
+            makeCall();
           }}
         />
       </Stack>

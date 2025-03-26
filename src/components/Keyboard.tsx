@@ -56,8 +56,12 @@ function Keyboard({
   buttonClick = (value: string) => {
     console.log("Keyboard button clicked:", value);
   },
+  callClick = () => {
+    console.log("Keyboard call clicked");
+  },
 }: {
   buttonClick?: (value: string) => void;
+  callClick?: () => void;
 }) {
   return (
     <Stack>
@@ -84,7 +88,7 @@ function Keyboard({
         ))}
       </Grid>
       <Flex gap={"sm"} justify={"center"} mt={10}>
-        <Button size={"lg"} radius={"lg"} color="green">
+        <Button size={"lg"} radius={"lg"} color="green" onClick={callClick}>
           <IconPhoneCall />
         </Button>
         <Button size={"lg"} radius={"lg"} disabled>
